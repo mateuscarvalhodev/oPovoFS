@@ -1,6 +1,6 @@
 import { Navigate, Route, Routes } from "react-router";
-import { PostsListPage } from "../../features/posts/pages/postsListPage";
-import { LoginPage } from "../../features/auth/pages/LoginPage";
+import { PostsListPage } from "@/features/posts/pages/postsListPage";
+import { LoginPage } from "@/features/auth/pages/LoginPage";
 
 export function AppRoutes() {
   return (
