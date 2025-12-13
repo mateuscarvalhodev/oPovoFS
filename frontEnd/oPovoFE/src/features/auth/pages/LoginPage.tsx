@@ -1,16 +1,20 @@
-import { Link } from "react-router";
+import { Link, useNavigate } from "react-router";
+import * as AuthService from "@/features/auth/services/auth-service";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { LoginForm } from "../components/LoginForm";
-import type { LoginFormValues } from "../components/LoginForm";
+import type { LoginFormValues } from "../schemas/login-schema";
 
 export function LoginPage() {
+  const navigate = useNavigate();
+
   async function onSubmit(values: LoginFormValues) {
-    console.log("login payload:", values);
+    await AuthService.login(values);
+    navigate("/posts");
   }
 
   return (
-    <div className="mx-auto md:w-md">
+    <div className="mx-auto w-full max-w-md p-6 md:w-md">
       <Card>
         <CardHeader className="space-y-2">
           <CardTitle className="text-2xl">O Povo</CardTitle>

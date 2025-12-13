@@ -1,4 +1,3 @@
-import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 
@@ -12,9 +11,10 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { loginSchema } from "../schemas/login-schema";
 
-export type LoginFormValues = z.infer<typeof loginSchema>;
+import { getApiErrorMessage } from "@/shared/api/api-error";
+import { loginSchema, type LoginFormValues } from "../schemas/login-schema";
+import { PasswordInput } from "@/components/PasswordInput";
 
 type LoginFormProps = {
   onSubmit: (values: LoginFormValues) => Promise<void> | void;
@@ -34,14 +34,23 @@ export function LoginForm({
   const isSubmitting = form.formState.isSubmitting;
 
   async function handleSubmit(values: LoginFormValues) {
-    await onSubmit(values);
+    form.clearErrors("root");
+
+    try {
+      await onSubmit(values);
+    } catch (err) {
+      form.setError("root", {
+        type: "server",
+        message: getApiErrorMessage(err),
+      });
+    }
   }
 
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
         {form.formState.errors.root?.message ? (
-          <p className="text-sm text-destructive">
+          <p className="text-sm text-destructive" aria-live="polite">
             {form.formState.errors.root.message}
           </p>
         ) : null}
@@ -72,8 +81,7 @@ export function LoginForm({
             <FormItem>
               <FormLabel>Senha</FormLabel>
               <FormControl>
-                <Input
-                  type="password"
+                <PasswordInput
                   placeholder="********"
                   autoComplete="current-password"
                   {...field}

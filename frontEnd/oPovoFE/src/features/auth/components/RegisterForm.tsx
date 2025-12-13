@@ -1,4 +1,3 @@
-import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 
@@ -12,9 +11,13 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { registerSchema } from "../schemas/register-schema";
 
-export type RegisterFormValues = z.infer<typeof registerSchema>;
+import { getApiErrorMessage } from "@/shared/api/api-error";
+import {
+  registerSchema,
+  type RegisterFormValues,
+} from "../schemas/register-schema";
+import { PasswordInput } from "@/components/PasswordInput";
 
 type RegisterFormProps = {
   onSubmit: (values: RegisterFormValues) => Promise<void> | void;
@@ -39,14 +42,23 @@ export function RegisterForm({
   const isSubmitting = form.formState.isSubmitting;
 
   async function handleSubmit(values: RegisterFormValues) {
-    await onSubmit(values);
+    form.clearErrors("root");
+
+    try {
+      await onSubmit(values);
+    } catch (err) {
+      form.setError("root", {
+        type: "server",
+        message: getApiErrorMessage(err),
+      });
+    }
   }
 
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
         {form.formState.errors.root?.message ? (
-          <p className="text-sm text-destructive">
+          <p className="text-sm text-destructive" aria-live="polite">
             {form.formState.errors.root.message}
           </p>
         ) : null}
@@ -91,8 +103,7 @@ export function RegisterForm({
             <FormItem>
               <FormLabel>Senha</FormLabel>
               <FormControl>
-                <Input
-                  type="password"
+                <PasswordInput
                   placeholder="********"
                   autoComplete="new-password"
                   {...field}
@@ -110,8 +121,7 @@ export function RegisterForm({
             <FormItem>
               <FormLabel>Confirmar senha</FormLabel>
               <FormControl>
-                <Input
-                  type="password"
+                <PasswordInput
                   placeholder="********"
                   autoComplete="new-password"
                   {...field}

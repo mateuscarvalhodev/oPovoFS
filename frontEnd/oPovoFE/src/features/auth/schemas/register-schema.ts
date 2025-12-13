@@ -14,3 +14,5 @@ export const registerSchema = z
     message: "As senhas não conferem.",
     path: ["confirmPassword"],
   });
+
+export type RegisterFormValues = z.infer<typeof registerSchema>;
