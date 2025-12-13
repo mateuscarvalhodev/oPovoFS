@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { PostsList } from "../components/PostsList";
 import type { PostListItem } from "../types";
-import { Link } from "react-router";
+import { Link, Outlet } from "react-router";
 import { Input } from "@/components/ui/input";
 import { useMemo, useState } from "react";
 
@@ -51,7 +51,7 @@ export function PostsListPage() {
           </div>
 
           <Button asChild>
-            <Link to="/dashboard/posts/new">Novo post</Link>
+            <Link to="/posts/new">Novo post</Link>
           </Button>
         </div>
 
@@ -64,6 +64,7 @@ export function PostsListPage() {
       </header>
 
       <PostsList posts={filteredPosts} />
+      <Outlet />
     </div>
   );
 }
