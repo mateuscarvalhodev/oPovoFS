@@ -10,7 +10,7 @@ export function LoginPage() {
   }
 
   return (
-    <div className="mx-auto w-full max-w-md p-6">
+    <div className="mx-auto md:w-md">
       <Card>
         <CardHeader className="space-y-2">
           <CardTitle className="text-2xl">O Povo</CardTitle>
