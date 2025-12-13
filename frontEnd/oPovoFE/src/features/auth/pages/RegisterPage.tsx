@@ -1,5 +1,8 @@
 import { Link, useNavigate } from "react-router";
+import { toast } from "sonner";
+
 import * as AuthService from "@/features/auth/services/auth-service";
+import { getApiErrorMessage } from "@/shared/api/api-error";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { RegisterForm } from "../components/RegisterForm";
@@ -9,22 +12,28 @@ export function RegisterPage() {
   const navigate = useNavigate();
 
   async function onSubmit(values: RegisterFormValues) {
-    await AuthService.register({
-      name: values.name,
-      email: values.email,
-      password: values.password,
-    });
+    try {
+      await AuthService.register({
+        name: values.name,
+        email: values.email,
+        password: values.password,
+      });
 
-    await AuthService.login({
-      email: values.email,
-      password: values.password,
-    });
+      await AuthService.login({
+        email: values.email,
+        password: values.password,
+      });
 
-    navigate("/posts");
+      toast.success("Conta criada e login realizado.");
+      navigate("/posts");
+    } catch (err) {
+      toast.error(getApiErrorMessage(err));
+      throw err;
+    }
   }
 
   return (
-    <div className="mx-auto w-full max-w-md p-6 md:w-md">
+    <div className="mx-auto md:w-md">
       <Card>
         <CardHeader className="space-y-2">
           <CardTitle className="text-2xl">Criar conta</CardTitle>

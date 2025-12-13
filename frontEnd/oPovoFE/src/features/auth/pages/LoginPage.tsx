@@ -4,13 +4,22 @@ import * as AuthService from "@/features/auth/services/auth-service";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { LoginForm } from "../components/LoginForm";
 import type { LoginFormValues } from "../schemas/login-schema";
+import { toast } from "sonner";
+import { getApiErrorMessage } from "@/shared/api/api-error";
 
 export function LoginPage() {
   const navigate = useNavigate();
 
   async function onSubmit(values: LoginFormValues) {
-    await AuthService.login(values);
-    navigate("/posts");
+    try {
+      await AuthService.login(values);
+
+      toast.success("Login realizado com sucesso.");
+      navigate("/posts");
+    } catch (err) {
+      toast.error(getApiErrorMessage(err));
+      throw err;
+    }
   }
 
   return (
