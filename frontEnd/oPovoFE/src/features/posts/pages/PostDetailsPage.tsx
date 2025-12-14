@@ -1,10 +1,9 @@
 import { useEffect, useMemo } from "react";
 import { Link, Navigate, Outlet, useNavigate, useParams } from "react-router";
 import { toast } from "sonner";
-import { Pencil } from "lucide-react";
+import { Pencil, Calendar, User2, ArrowLeft } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 import { getApiErrorMessage } from "@/shared/api/api-error";
 import { formatDatePtBR } from "@/shared/lib/date";
@@ -25,13 +24,10 @@ export function PostDetailsPage() {
   const isValidId = Number.isFinite(postId) && postId > 0;
 
   const session = useAuthSession();
-
   const postQuery = usePostDetails(postId);
 
   useEffect(() => {
-    if (!isValidId) {
-      toast.error("ID do post inválido.");
-    }
+    if (!isValidId) toast.error("ID do post inválido.");
   }, [isValidId]);
 
   useEffect(() => {
@@ -56,58 +52,73 @@ export function PostDetailsPage() {
 
   return (
     <div className="mx-auto w-full max-w-6xl px-4 py-6 sm:px-6">
-      <div className="mb-4">
+      <div className="mb-6 flex items-center justify-between gap-3">
         <Button asChild variant="outline">
-          <Link to="/posts">← Voltar</Link>
+          <Link to="/posts" className="gap-2">
+            <ArrowLeft className="h-4 w-4" />
+            Voltar
+          </Link>
         </Button>
+
+        {post && canEdit ? (
+          <div className="flex items-center gap-1">
+            <Button
+              asChild
+              variant="ghost"
+              size="icon"
+              aria-label="Editar post"
+            >
+              <Link to="edit">
+                <Pencil className="h-4 w-4" />
+              </Link>
+            </Button>
+
+            <DeletePostDialog
+              postId={post.id}
+              onDeleted={() => navigate("/posts", { replace: true })}
+            />
+          </div>
+        ) : null}
       </div>
 
       {isInitialLoading ? (
         <PageLoading label="Carregando post..." />
       ) : !post ? (
-        <p className="text-sm text-muted-foreground">Post não encontrado.</p>
+        <div className="rounded-lg border bg-card p-6 text-sm text-muted-foreground">
+          Post não encontrado.
+        </div>
       ) : (
-        <div className="relative">
+        <article className="relative">
           {isRefetching ? <LoadingOverlay label="Atualizando..." /> : null}
 
-          <Card>
-            <CardHeader className="space-y-2">
-              <div className="flex items-start justify-between gap-3">
-                <CardTitle className="text-2xl">{post.title}</CardTitle>
+          <header className="mb-6 space-y-4">
+            <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl">
+              {post.title}
+            </h1>
 
-                {canEdit ? (
-                  <div className="flex items-center gap-1">
-                    <Button
-                      asChild
-                      variant="ghost"
-                      size="icon"
-                      aria-label="Editar post"
-                    >
-                      <Link to="edit">
-                        <Pencil className="h-4 w-4" />
-                      </Link>
-                    </Button>
-
-                    <DeletePostDialog
-                      postId={post.id}
-                      onDeleted={() => navigate("/posts", { replace: true })}
-                    />
-                  </div>
-                ) : null}
+            <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-sm text-muted-foreground">
+              <div className="flex items-center gap-2">
+                <User2 className="h-4 w-4" />
+                <span>{post.authorName}</span>
               </div>
 
-              <p className="text-sm text-muted-foreground">
-                {post.authorName} • {formatDatePtBR(post.createdAt)}
-              </p>
-            </CardHeader>
-
-            <CardContent>
-              <div className="whitespace-pre-wrap leading-relaxed">
-                {post.content}
+              <div className="flex items-center gap-2">
+                <Calendar className="h-4 w-4" />
+                <time dateTime={post.createdAt}>
+                  {formatDatePtBR(post.createdAt)}
+                </time>
               </div>
-            </CardContent>
-          </Card>
-        </div>
+            </div>
+
+            <div className="h-px w-full bg-border" />
+          </header>
+
+          <div className="prose prose-zinc max-w-none dark:prose-invert">
+            <div className="whitespace-pre-wrap leading-relaxed">
+              {post.content}
+            </div>
+          </div>
+        </article>
       )}
 
       <Outlet />
