@@ -1,20 +1,12 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import type { PostListItem } from "../types";
 import { Link } from "react-router";
+import { makeExcerpt } from "@/shared/lib/text";
+import { formatDatePtBR } from "@/shared/lib/date";
 
 type PostCardProps = {
   post: PostListItem;
 };
-function formatDate(iso: string) {
-  const date = new Date(iso);
-  return new Intl.DateTimeFormat("pt-BR", { dateStyle: "medium" }).format(date);
-}
-
-function makeExcerpt(text: string, max = 140) {
-  const normalized = text.replace(/\s+/g, " ").trim();
-  if (normalized.length <= max) return normalized;
-  return normalized.slice(0, max).trimEnd() + "...";
-}
 
 export function PostCard({ post }: PostCardProps) {
   return (
@@ -29,7 +21,7 @@ export function PostCard({ post }: PostCardProps) {
           </Link>
         </CardTitle>
         <p className="text-sm text-muted-foreground">
-          {post.authorName} • {formatDate(post.createdAt)}
+          {post.authorName} • {formatDatePtBR(post.createdAt)}
         </p>
       </CardHeader>
 

@@ -27,6 +27,7 @@ import {
 
 import { getApiErrorMessage } from "@/shared/api/api-error";
 import * as PostsService from "@/features/posts/services/posts-service";
+import { notifyPostsChanged } from "../hooks/posts-events";
 
 const createPostSchema = z.object({
   title: z
@@ -63,7 +64,7 @@ export function NewPostSheet() {
 
     try {
       await PostsService.createPost(values);
-
+      notifyPostsChanged();
       toast.success("Post criado com sucesso!");
       closeSheet();
     } catch (err) {
