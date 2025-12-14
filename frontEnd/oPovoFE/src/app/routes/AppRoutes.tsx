@@ -4,10 +4,11 @@ import { WelcomePage } from "@/features/home/pages/WelcomePage";
 import { LoginPage } from "@/features/auth/pages/LoginPage";
 import { RegisterPage } from "@/features/auth/pages/RegisterPage";
 
-import { PostDetailsPage } from "@/features/posts/pages/PostDetailsPage";
 import { NewPostSheet } from "@/features/posts/pages/newPostPage";
 import { PostsListPage } from "@/features/posts/pages/postsListPage";
 import { PostsLayout } from "@/features/posts/pages/PostsLayout";
+import { EditPostSheet } from "@/features/posts/components/EditPostSheet";
+import { PostDetailsLayout } from "@/features/posts/pages/PostDetailsLayout";
 
 export function AppRoutes() {
   return (
@@ -19,7 +20,9 @@ export function AppRoutes() {
       <Route path="/posts" element={<PostsLayout />}>
         <Route index element={<PostsListPage />} />
         <Route path="new" element={<NewPostSheet />} />
-        <Route path=":id" element={<PostDetailsPage />} />
+        <Route path=":id" element={<PostDetailsLayout />}>
+          <Route path="edit" element={<EditPostSheet />} />
+        </Route>
       </Route>
 
       <Route path="*" element={<Navigate to="/" replace />} />

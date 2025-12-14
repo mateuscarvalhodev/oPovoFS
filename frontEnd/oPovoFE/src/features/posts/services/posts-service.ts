@@ -1,5 +1,5 @@
 import * as postsApi from "../api/posts-api";
-import type { PostListItem } from "../types";
+import type { PostListItem, CreatePostPayload } from "../types";
 import type { PostsListResponse } from "../api/posts-api";
 import { parsePtBrDateTimeToIso } from "@/shared/lib/date";
 
@@ -7,6 +7,7 @@ export type PostDetailsView = {
   id: number;
   title: string;
   content: string;
+  authorId: number;
   authorName: string;
   createdAt: string;
   updatedAt: string;
@@ -51,6 +52,7 @@ export async function getPostById(id: number): Promise<PostDetailsView> {
     id: post.id,
     title: post.titulo,
     content: post.conteudo,
+    authorId: post.autor.id,
     authorName: post.autor.name,
     createdAt: post.created_at,
     updatedAt: post.updated_at,
@@ -58,8 +60,22 @@ export async function getPostById(id: number): Promise<PostDetailsView> {
 }
 
 export async function createPost(input: { title: string; content: string }) {
-  return postsApi.createPost({
+  const payload: CreatePostPayload = {
     titulo: input.title,
     conteudo: input.content,
-  });
+  };
+
+  return postsApi.createPost(payload);
+}
+
+export async function updatePost(
+  id: number,
+  input: { title: string; content: string }
+) {
+  const payload: CreatePostPayload = {
+    titulo: input.title,
+    conteudo: input.content,
+  };
+
+  return postsApi.updatePost(id, payload);
 }

@@ -41,6 +41,11 @@ export type PostDetailsApi = {
   autor: PostAuthorApi;
 };
 
+export type UpdatePostPayload = {
+  titulo: string;
+  conteudo: string;
+};
+
 export async function getPosts(params: {
   page: number;
   per_page: number;
@@ -59,5 +64,10 @@ export async function getPostById(id: number) {
 
 export async function createPost(payload: CreatePostPayload) {
   const { data } = await apiBase.post<Post>("/posts", payload);
+  return data;
+}
+
+export async function updatePost(id: number, payload: UpdatePostPayload) {
+  const { data } = await apiBase.put<Post>(`/posts/${id}`, payload);
   return data;
 }
