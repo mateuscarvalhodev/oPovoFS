@@ -1,73 +1,118 @@
-# React + TypeScript + Vite
+# O POVO — Frontend (React + Vite)
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Aplicação web de blog colaborativo onde usuários podem visualizar posts públicos e, quando autenticados, criar, editar, excluir seus próprios posts.
 
-Currently, two official plugins are available:
+## Funcionalidades
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+### Público (sem login)
 
-## React Compiler
+- Ver lista de posts públicos
+- Buscar posts (título/autor/conteúdo)
+- Paginação
+- Ver detalhes de um post
+- Acessar páginas de Login e Cadastro
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+### Autenticado (com login)
 
-## Expanding the ESLint configuration
+- Criar post
+- Editar post (apenas do autor)
+- Excluir post (apenas do autor)
+- Página **Meus posts** (`/meus-posts`) para gerenciar posts do usuário
+- Header com menu do perfil (Dropdown Menu) com:
+  - **Meus posts**
+  - **Todos os posts**
+  - **Sair (logout)**
+- Proteções de rota:
+  - `/meus-posts` exige autenticação
+  - se o usuário estiver logado e tentar acessar `/login` ou `/register`, é redirecionado para `/posts`
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+## 🧱 Stack / Bibliotecas
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+- React + Vite + TypeScript
+- React Router
+- TanStack React Query (cache, refetch, loading states)
+- shadcn/ui
+- Tailwind CSS
+- React Hook Form + Zod
+- Lucide Icons
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+## 🔗 API (Backend)
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+Este frontend consome uma API local em `http://127.0.0.1:8000/api` [tirei o ignore do .env].
+
+Endpoints utilizados:
+
+- `POST /auth/register`
+- `POST /auth/login`
+- `POST /auth/logout`
+- `GET /posts`
+- `GET /posts/{id}`
+- `POST /posts`
+- `PUT /posts/{id}`
+- `DELETE /posts/{id}`
+- `GET /meus-posts` (rota autenticada)
+
+> Autenticação via **Bearer Token** no header `Authorization: Bearer <token>`.
+
+## ✅ Requisitos
+
+- Node.js
+- pnpm
+
+## ▶️ Como rodar o projeto
+
+### 1) Instalar dependências
+
+```bash
+pnpm install
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+### 2) Rodar em desenvolvimento
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```bash
+pnpm dev
 ```
+
+A aplicação ficará disponível em:
+
+http://localhost:5173
+
+### 3) Build de produção
+
+```bash
+pnpm build
+```
+
+### 4) Preview do build
+
+```bash
+pnpm preview
+```
+
+## Rotas principais
+
+/ — Welcome page (sem header)
+
+/posts — Listagem pública de posts
+
+/posts/new — Criar post
+
+/posts/:id — Detalhes do post
+
+/posts/:id/edit — Editar post
+
+/login — Login
+
+/register — Cadastro
+
+/meus-posts — Gerenciar posts do usuário (tem que estar authenticado)
+
+## Notas de UX
+
+Listagens têm paginação e busca com debounce
+
+Loading states usando React Query
+
+Confirmação de exclusão com Alert Dialog
+
+Após criar/editar/excluir, as listagens são atualizadas via invalidate/refetch
