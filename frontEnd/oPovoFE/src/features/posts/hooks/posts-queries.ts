@@ -80,10 +80,11 @@ export function useDeletePost() {
   return useMutation({
     mutationFn: (postId: number) => PostsService.deletePost(postId),
     onSuccess: async (_data, postId) => {
+      qc.removeQueries({ queryKey: ["post", postId] });
+
       await Promise.all([
         qc.invalidateQueries({ queryKey: ["posts"] }),
         qc.invalidateQueries({ queryKey: ["my-posts"] }),
-        qc.invalidateQueries({ queryKey: ["post", postId] }),
       ]);
     },
   });
