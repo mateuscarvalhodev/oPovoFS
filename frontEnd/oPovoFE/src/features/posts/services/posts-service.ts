@@ -1,5 +1,5 @@
 import * as postsApi from "../api/posts-api";
-import type { PostListItem, CreatePostPayload } from "../types";
+import type { CreatePostPayload, PostListItem } from "../types";
 import type { PostsListResponse } from "../api/posts-api";
 import { parsePtBrDateTimeToIso } from "@/shared/lib/date";
 
@@ -25,6 +25,26 @@ export type ListPostsResult = {
   links: PostsListResponse["links"];
 };
 
+export type ListMyPostsInput = {
+  page: number;
+  perPage: number;
+  query?: string;
+};
+
+export type ListMyPostsResult = {
+  posts: PostListItem[];
+  meta: {
+    current_page: number;
+    last_page: number;
+    per_page: number;
+    total: number;
+  };
+  links: {
+    prev: string | null;
+    next: string | null;
+  };
+};
+
 export async function listPosts(
   input: ListPostsInput
 ): Promise<ListPostsResult> {
@@ -45,6 +65,38 @@ export async function listPosts(
   return { posts, meta: res.meta, links: res.links };
 }
 
+export async function listMyPosts(
+  input: ListMyPostsInput
+): Promise<ListMyPostsResult> {
+  const res = await postsApi.getMyPosts({
+    page: input.page,
+    per_page: input.perPage,
+    search: input.query?.trim() ? input.query.trim() : undefined,
+  });
+
+  const posts: PostListItem[] = res.data.map((p) => ({
+    id: p.id,
+    title: p.titulo,
+    content: p.conteudo,
+    authorName: "Você",
+    createdAt: p.created_at,
+  }));
+
+  return {
+    posts,
+    meta: {
+      current_page: res.current_page,
+      last_page: res.last_page,
+      per_page: res.per_page,
+      total: res.total,
+    },
+    links: {
+      prev: res.prev_page_url,
+      next: res.next_page_url,
+    },
+  };
+}
+
 export async function getPostById(id: number): Promise<PostDetailsView> {
   const post = await postsApi.getPostById(id);
 
@@ -52,8 +104,8 @@ export async function getPostById(id: number): Promise<PostDetailsView> {
     id: post.id,
     title: post.titulo,
     content: post.conteudo,
-    authorId: post.autor.id,
-    authorName: post.autor.name,
+    authorId: post.autor?.id ?? post.autor_id ?? 0,
+    authorName: post.autor?.name ?? "Autor desconhecido",
     createdAt: post.created_at,
     updatedAt: post.updated_at,
   };

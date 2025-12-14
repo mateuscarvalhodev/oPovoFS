@@ -1,6 +1,6 @@
 import { Link, useNavigate } from "react-router";
 import { toast } from "sonner";
-import { CircleUser, LogOut } from "lucide-react";
+import { CircleUser, LogOut, FileText } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -82,6 +82,15 @@ export function AppHeader() {
                     {session?.user.email}
                   </div>
                 </DropdownMenuLabel>
+
+                <DropdownMenuSeparator />
+
+                <DropdownMenuItem asChild>
+                  <Link to="/meus-posts" className="flex items-center">
+                    <FileText className="mr-2 h-4 w-4" />
+                    Meus posts
+                  </Link>
+                </DropdownMenuItem>
 
                 <DropdownMenuSeparator />
 

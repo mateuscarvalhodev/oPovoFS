@@ -41,6 +41,32 @@ export type PostDetailsApi = {
   autor: PostAuthorApi;
 };
 
+export type MyPostsApiItem = {
+  id: number;
+  titulo: string;
+  conteudo: string;
+  autor_id: number;
+  created_at: string;
+  updated_at: string;
+  deleted_at: string | null;
+};
+
+export type MyPostsResponse = {
+  current_page: number;
+  data: MyPostsApiItem[];
+  last_page: number;
+  per_page: number;
+  total: number;
+  prev_page_url: string | null;
+  next_page_url: string | null;
+};
+
+export type GetMyPostsParams = {
+  page: number;
+  per_page: number;
+  search?: string;
+};
+
 export type UpdatePostPayload = {
   titulo: string;
   conteudo: string;
@@ -60,6 +86,13 @@ export async function getPostById(id: number) {
     `/posts/${id}`
   );
   return "data" in data ? data.data : data;
+}
+
+export async function getMyPosts(params: GetMyPostsParams) {
+  const { data } = await apiBase.get<MyPostsResponse>("/meus-posts", {
+    params,
+  });
+  return data;
 }
 
 export async function createPost(payload: CreatePostPayload) {

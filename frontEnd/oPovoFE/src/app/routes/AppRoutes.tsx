@@ -1,13 +1,17 @@
 import { Routes, Route, Navigate } from "react-router";
+
 import { AppLayout } from "@/app/layouts/AppLayout";
 import { WelcomePage } from "@/features/home/pages/WelcomePage";
 import { LoginPage } from "@/features/auth/pages/LoginPage";
 import { RegisterPage } from "@/features/auth/pages/RegisterPage";
 
-import { PostDetailsPage } from "@/features/posts/pages/PostDetailsPage";
-import { EditPostSheet } from "@/features/posts/components/EditPostSheet";
 import { PostsListPage } from "@/features/posts/pages/postsListPage";
 import { NewPostSheet } from "@/features/posts/pages/newPostPage";
+
+import { PostDetailsPage } from "@/features/posts/pages/PostDetailsPage";
+import { EditPostSheet } from "@/features/posts/components/EditPostSheet";
+
+import { MyPostsPage } from "@/features/posts/pages/MyPostsPage";
 
 export function AppRoutes() {
   return (
@@ -25,6 +29,8 @@ export function AppRoutes() {
         <Route path="/posts/:id" element={<PostDetailsPage />}>
           <Route path="edit" element={<EditPostSheet />} />
         </Route>
+
+        <Route path="/meus-posts" element={<MyPostsPage />} />
 
         <Route path="*" element={<Navigate to="/posts" replace />} />
       </Route>

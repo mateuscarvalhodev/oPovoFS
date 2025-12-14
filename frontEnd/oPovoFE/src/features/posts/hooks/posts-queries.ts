@@ -4,24 +4,42 @@ import {
   useQuery,
   useQueryClient,
 } from "@tanstack/react-query";
+
 import * as PostsService from "@/features/posts/services/posts-service";
-import type { ListPostsResult } from "@/features/posts/services/posts-service";
+import type {
+  ListPostsResult,
+  ListMyPostsResult,
+  PostDetailsView,
+} from "@/features/posts/services/posts-service";
 
 type ListInput = { page: number; perPage: number; query?: string };
 
 export function usePostsList(input: ListInput) {
-  return useQuery<ListPostsResult>({
+  return useQuery<ListPostsResult, Error>({
     queryKey: ["posts", input.page, input.perPage, input.query ?? ""] as const,
     queryFn: () => PostsService.listPosts(input),
     placeholderData: keepPreviousData,
   });
 }
 
+export function useMyPostsList(input: ListInput) {
+  return useQuery<ListMyPostsResult, Error>({
+    queryKey: [
+      "my-posts",
+      input.page,
+      input.perPage,
+      input.query ?? "",
+    ] as const,
+    queryFn: () => PostsService.listMyPosts(input),
+    placeholderData: keepPreviousData,
+  });
+}
+
 export function usePostDetails(id: number) {
-  return useQuery({
+  return useQuery<PostDetailsView, Error>({
     queryKey: ["post", id] as const,
     queryFn: () => PostsService.getPostById(id),
-    enabled: Number.isFinite(id),
+    enabled: Number.isFinite(id) && id > 0,
   });
 }
 
@@ -32,7 +50,10 @@ export function useCreatePost() {
     mutationFn: (payload: { title: string; content: string }) =>
       PostsService.createPost(payload),
     onSuccess: async () => {
-      await qc.invalidateQueries({ queryKey: ["posts"] });
+      await Promise.all([
+        qc.invalidateQueries({ queryKey: ["posts"] }),
+        qc.invalidateQueries({ queryKey: ["my-posts"] }),
+      ]);
     },
   });
 }
@@ -46,6 +67,7 @@ export function useUpdatePost(postId: number) {
     onSuccess: async () => {
       await Promise.all([
         qc.invalidateQueries({ queryKey: ["posts"] }),
+        qc.invalidateQueries({ queryKey: ["my-posts"] }),
         qc.invalidateQueries({ queryKey: ["post", postId] }),
       ]);
     },
@@ -57,8 +79,12 @@ export function useDeletePost() {
 
   return useMutation({
     mutationFn: (postId: number) => PostsService.deletePost(postId),
-    onSuccess: async () => {
-      await qc.invalidateQueries({ queryKey: ["posts"] });
+    onSuccess: async (_data, postId) => {
+      await Promise.all([
+        qc.invalidateQueries({ queryKey: ["posts"] }),
+        qc.invalidateQueries({ queryKey: ["my-posts"] }),
+        qc.invalidateQueries({ queryKey: ["post", postId] }),
+      ]);
     },
   });
 }
