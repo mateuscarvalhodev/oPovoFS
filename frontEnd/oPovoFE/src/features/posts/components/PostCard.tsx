@@ -26,9 +26,14 @@ export function PostCard({ post }: PostCardProps) {
       </CardHeader>
 
       <CardContent>
-        <p className="text-sm leading-relaxed text-muted-foreground">
-          {makeExcerpt(post.content)}
-        </p>
+        <Link
+          to={`/posts/${post.id}`}
+          className="hover:underline focus:outline-none focus:ring-2 focus:ring-ring"
+        >
+          <p className="text-sm leading-relaxed text-muted-foreground">
+            {makeExcerpt(post.content)}
+          </p>
+        </Link>
       </CardContent>
     </Card>
   );
