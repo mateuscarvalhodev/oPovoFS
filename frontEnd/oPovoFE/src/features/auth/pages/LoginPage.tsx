@@ -15,7 +15,7 @@ export function LoginPage() {
       await AuthService.login(values);
 
       toast.success("Login realizado com sucesso.");
-      navigate("/posts");
+      navigate("/posts", { replace: true });
     } catch (err) {
       toast.error(getApiErrorMessage(err));
       throw err;
@@ -23,9 +23,9 @@ export function LoginPage() {
   }
 
   return (
-    <div className="mx-auto w-full max-w-md p-6 md:w-md">
-      <Card>
-        <CardHeader className="space-y-2">
+    <div className="min-h-screen w-full px-4 py-10 flex items-center justify-center">
+      <Card className="w-full max-w-md">
+        <CardHeader className="space-y-2 text-left">
           <CardTitle className="text-2xl">O Povo</CardTitle>
           <p className="text-sm text-muted-foreground">
             Acesse sua conta para gerenciar seus posts.

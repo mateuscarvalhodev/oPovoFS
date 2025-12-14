@@ -74,7 +74,7 @@ export function MyPostsPage() {
   }
 
   return (
-    <div className="mx-auto w-full max-w-3xl p-6">
+    <div className="mx-auto w-full max-w-6xl px-4 py-6 sm:px-6">
       <header className="mb-6 space-y-3">
         <div className="flex items-start justify-between gap-3">
           <div>

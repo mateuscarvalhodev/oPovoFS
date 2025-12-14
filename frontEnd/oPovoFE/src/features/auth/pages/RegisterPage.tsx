@@ -25,7 +25,7 @@ export function RegisterPage() {
       });
 
       toast.success("Conta criada e login realizado.");
-      navigate("/posts");
+      navigate("/posts", { replace: true });
     } catch (err) {
       toast.error(getApiErrorMessage(err));
       throw err;
@@ -33,9 +33,9 @@ export function RegisterPage() {
   }
 
   return (
-    <div className="mx-auto md:w-md">
-      <Card>
-        <CardHeader className="space-y-2">
+    <div className="min-h-screen w-full px-4 py-10 flex items-center justify-center">
+      <Card className="w-full max-w-md">
+        <CardHeader className="space-y-2 text-left">
           <CardTitle className="text-2xl">Criar conta</CardTitle>
           <p className="text-sm text-muted-foreground">
             Cadastre-se para publicar e gerenciar seus posts.
