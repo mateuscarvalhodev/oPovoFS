@@ -91,7 +91,12 @@ export function AppHeader() {
                     Meus posts
                   </Link>
                 </DropdownMenuItem>
-
+                <DropdownMenuItem asChild>
+                  <Link to="/posts" className="flex items-center">
+                    <FileText className="mr-2 h-4 w-4" />
+                    Todos os posts
+                  </Link>
+                </DropdownMenuItem>
                 <DropdownMenuSeparator />
 
                 <DropdownMenuItem

@@ -1,6 +1,6 @@
 import { z } from "zod";
-import { useState } from "react";
-import { useNavigate } from "react-router";
+import { useMemo, useState } from "react";
+import { Link, useLocation, useNavigate } from "react-router";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
@@ -27,6 +27,7 @@ import {
 
 import { getApiErrorMessage } from "@/shared/api/api-error";
 import { useCreatePost } from "../hooks/posts-queries";
+import { useAuthSession } from "@/features/auth/store/auth-session";
 
 const createPostSchema = z.object({
   title: z
@@ -43,6 +44,11 @@ type CreatePostValues = z.infer<typeof createPostSchema>;
 
 export function NewPostSheet() {
   const navigate = useNavigate();
+  const location = useLocation();
+
+  const session = useAuthSession();
+  const isAuthenticated = Boolean(session?.token);
+
   const [open, setOpen] = useState(true);
 
   const createPost = useCreatePost();
@@ -72,7 +78,9 @@ export function NewPostSheet() {
     }
   }
 
-  const isSubmitting = form.formState.isSubmitting || createPost.isPending;
+  const isSubmitting = useMemo(() => {
+    return form.formState.isSubmitting || createPost.isPending;
+  }, [form.formState.isSubmitting, createPost.isPending]);
 
   return (
     <Sheet
@@ -83,74 +91,108 @@ export function NewPostSheet() {
       }}
     >
       <SheetContent side="right" className="w-full p-4 sm:max-w-lg">
-        <SheetHeader>
-          <SheetTitle>Novo post</SheetTitle>
-          <SheetDescription>
-            Crie um novo post para publicar no blog.
-          </SheetDescription>
-        </SheetHeader>
+        {!isAuthenticated ? (
+          <>
+            <SheetHeader>
+              <SheetTitle>Você precisa estar logado</SheetTitle>
+              <SheetDescription>
+                Faça login para criar um post.
+              </SheetDescription>
+            </SheetHeader>
 
-        <div className="mt-6">
-          <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
-              {form.formState.errors.root?.message ? (
-                <p className="text-sm text-destructive" aria-live="polite">
-                  {form.formState.errors.root.message}
-                </p>
-              ) : null}
+            <div className="mt-6 space-y-4">
+              <p className="text-sm text-muted-foreground">
+                Para publicar no blog, entre na sua conta.
+              </p>
 
-              <FormField
-                control={form.control}
-                name="title"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Título</FormLabel>
-                    <FormControl>
-                      <Input
-                        placeholder="Ex.: Como organizei meu estudo..."
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+              <div className="flex gap-2">
+                <Button asChild>
+                  <Link to="/login" state={{ from: location.pathname }}>
+                    Ir para login
+                  </Link>
+                </Button>
 
-              <FormField
-                control={form.control}
-                name="content"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Conteúdo</FormLabel>
-                    <FormControl>
-                      <Textarea
-                        placeholder="Escreva seu post aqui..."
-                        className="min-h-52 resize-y"
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+                <Button variant="outline" onClick={closeSheet}>
+                  Voltar
+                </Button>
+              </div>
+            </div>
+          </>
+        ) : (
+          <>
+            <SheetHeader>
+              <SheetTitle>Novo post</SheetTitle>
+              <SheetDescription>
+                Crie um novo post para publicar no blog.
+              </SheetDescription>
+            </SheetHeader>
 
-              <SheetFooter className="mt-2 flex gap-2 sm:justify-end">
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={closeSheet}
-                  disabled={isSubmitting}
+            <div className="mt-6">
+              <Form {...form}>
+                <form
+                  onSubmit={form.handleSubmit(onSubmit)}
+                  className="space-y-5"
                 >
-                  Cancelar
-                </Button>
+                  {form.formState.errors.root?.message ? (
+                    <p className="text-sm text-destructive" aria-live="polite">
+                      {form.formState.errors.root.message}
+                    </p>
+                  ) : null}
 
-                <Button type="submit" disabled={isSubmitting}>
-                  {isSubmitting ? "Salvando..." : "Publicar"}
-                </Button>
-              </SheetFooter>
-            </form>
-          </Form>
-        </div>
+                  <FormField
+                    control={form.control}
+                    name="title"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Título</FormLabel>
+                        <FormControl>
+                          <Input
+                            placeholder="Ex.: Como organizei meu estudo..."
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="content"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Conteúdo</FormLabel>
+                        <FormControl>
+                          <Textarea
+                            placeholder="Escreva seu post aqui..."
+                            className="min-h-52 resize-y"
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <SheetFooter className="mt-2 flex gap-2 sm:justify-end">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={closeSheet}
+                      disabled={isSubmitting}
+                    >
+                      Cancelar
+                    </Button>
+
+                    <Button type="submit" disabled={isSubmitting}>
+                      {isSubmitting ? "Salvando..." : "Publicar"}
+                    </Button>
+                  </SheetFooter>
+                </form>
+              </Form>
+            </div>
+          </>
+        )}
       </SheetContent>
     </Sheet>
   );
