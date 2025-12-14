@@ -1,5 +1,5 @@
-import { Navigate, Route, Routes } from "react-router";
-
+import { Routes, Route, Navigate } from "react-router";
+import { AppLayout } from "@/app/layouts/AppLayout";
 import { WelcomePage } from "@/features/home/pages/WelcomePage";
 import { LoginPage } from "@/features/auth/pages/LoginPage";
 import { RegisterPage } from "@/features/auth/pages/RegisterPage";
@@ -13,18 +13,21 @@ export function AppRoutes() {
   return (
     <Routes>
       <Route path="/" element={<WelcomePage />} />
+
       <Route path="/login" element={<LoginPage />} />
       <Route path="/register" element={<RegisterPage />} />
 
-      <Route path="/posts" element={<PostsListPage />}>
-        <Route path="new" element={<NewPostSheet />} />
-      </Route>
+      <Route element={<AppLayout />}>
+        <Route path="/posts" element={<PostsListPage />}>
+          <Route path="new" element={<NewPostSheet />} />
+        </Route>
 
-      <Route path="/posts/:id" element={<PostDetailsPage />}>
-        <Route path="edit" element={<EditPostSheet />} />
-      </Route>
+        <Route path="/posts/:id" element={<PostDetailsPage />}>
+          <Route path="edit" element={<EditPostSheet />} />
+        </Route>
 
-      <Route path="*" element={<Navigate to="/" replace />} />
+        <Route path="*" element={<Navigate to="/posts" replace />} />
+      </Route>
     </Routes>
   );
 }
