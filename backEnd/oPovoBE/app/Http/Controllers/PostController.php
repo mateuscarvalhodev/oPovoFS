@@ -13,7 +13,7 @@ class PostController extends Controller
     {
         $posts = Post::with('autor:id,name')
             ->latest()
-            ->paginate(15);
+            ->paginate(12);
 
         return PostListResource::collection($posts);
     }
@@ -82,7 +82,7 @@ class PostController extends Controller
     {
         $posts = Post::where('autor_id', Auth::id())
             ->latest()
-            ->paginate(15);
+            ->paginate(12);
 
         return response()->json($posts);
     }
