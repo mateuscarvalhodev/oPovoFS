@@ -12,8 +12,13 @@ class PostController extends Controller
     public function list(Request $request)
     {
         $posts = Post::with('autor:id,name')
+            ->when($request->input('search'), function ($query, $search) {
+                $query->where(function ($q) use ($search) {
+                    $q->where('titulo', 'LIKE', "%{$search}%");
+                });
+            })
             ->latest()
-            ->paginate($request->input("per_page", 12));
+            ->paginate($request->input('per_page', 12));
 
         return PostListResource::collection($posts);
     }
@@ -86,5 +91,4 @@ class PostController extends Controller
 
         return response()->json($posts);
     }
-
 }
