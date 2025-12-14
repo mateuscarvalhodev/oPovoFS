@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Link, useParams } from "react-router";
+import { Link, useNavigate, useParams } from "react-router";
 import { toast } from "sonner";
 import { Pencil } from "lucide-react";
 
@@ -11,23 +11,21 @@ import type { PostDetailsView } from "@/features/posts/services/posts-service";
 import { getApiErrorMessage } from "@/shared/api/api-error";
 import { formatDatePtBR } from "@/shared/lib/date";
 
-// ✅ ajuste o import pra onde está seu getSession
 import { getSession } from "@/features/auth/services/auth-service";
+import { DeletePostDialog } from "@/features/posts/components/DeletePostDialog";
 
 export function PostDetailsPage() {
+  const navigate = useNavigate();
   const { id } = useParams();
   const postId = Number(id);
 
   const [post, setPost] = useState<PostDetailsView | null>(null);
   const [loading, setLoading] = useState(true);
 
-  // lê a sessão (sem estado global)
   const session = useMemo(() => getSession(), []);
-
   const canEdit =
-    session?.user?.id && post?.authorId
-      ? session!.user.id === post!.authorId
-      : false;
+    Boolean(session?.user?.id && post?.authorId) &&
+    session!.user.id === post!.authorId;
 
   useEffect(() => {
     let alive = true;
@@ -77,16 +75,23 @@ export function PostDetailsPage() {
               <CardTitle className="text-2xl">{post.title}</CardTitle>
 
               {canEdit ? (
-                <Button
-                  asChild
-                  variant="ghost"
-                  size="icon"
-                  aria-label="Editar post"
-                >
-                  <Link to="edit">
-                    <Pencil className="h-4 w-4" />
-                  </Link>
-                </Button>
+                <div className="flex items-center gap-1">
+                  <Button
+                    asChild
+                    variant="ghost"
+                    size="icon"
+                    aria-label="Editar post"
+                  >
+                    <Link to="edit">
+                      <Pencil className="h-4 w-4" />
+                    </Link>
+                  </Button>
+
+                  <DeletePostDialog
+                    postId={post.id}
+                    onDeleted={() => navigate("/posts", { replace: true })}
+                  />
+                </div>
               ) : null}
             </div>
 

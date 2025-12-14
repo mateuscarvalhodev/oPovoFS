@@ -79,3 +79,7 @@ export async function updatePost(
 
   return postsApi.updatePost(id, payload);
 }
+
+export async function deletePost(id: number) {
+  return postsApi.deletePost(id);
+}

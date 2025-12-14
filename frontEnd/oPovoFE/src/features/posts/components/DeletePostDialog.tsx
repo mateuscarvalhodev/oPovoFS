@@ -1,0 +1,90 @@
+import { useState } from "react";
+import { toast } from "sonner";
+
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+
+import { Button } from "@/components/ui/button";
+import { getApiErrorMessage } from "@/shared/api/api-error";
+import * as PostsService from "@/features/posts/services/posts-service";
+
+import { Trash2 } from "lucide-react";
+import { notifyPostsChanged } from "../hooks/posts-events";
+
+type DeletePostDialogProps = {
+  postId: number;
+  onDeleted?: () => void;
+  disabled?: boolean;
+};
+
+export function DeletePostDialog({
+  postId,
+  onDeleted,
+  disabled,
+}: DeletePostDialogProps) {
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  async function handleConfirm() {
+    try {
+      setIsDeleting(true);
+      await PostsService.deletePost(postId);
+
+      toast.success("Post excluído com sucesso!");
+      notifyPostsChanged();
+      onDeleted?.();
+    } catch (err) {
+      toast.error(getApiErrorMessage(err));
+    } finally {
+      setIsDeleting(false);
+    }
+  }
+
+  return (
+    <AlertDialog>
+      <AlertDialogTrigger asChild>
+        <Button
+          type="button"
+          variant="ghost"
+          size="icon"
+          aria-label="Excluir post"
+          disabled={disabled || isDeleting}
+          className="text-destructive hover:text-destructive"
+        >
+          <span className="sr-only">Excluir</span>
+
+          <Trash2 className="h-4 w-4" />
+        </Button>
+      </AlertDialogTrigger>
+
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>Excluir post?</AlertDialogTitle>
+          <AlertDialogDescription>
+            Essa ação é permanente e não pode ser desfeita.
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+
+        <AlertDialogFooter>
+          <AlertDialogCancel disabled={isDeleting}>Cancelar</AlertDialogCancel>
+
+          <AlertDialogAction
+            onClick={handleConfirm}
+            disabled={isDeleting}
+            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+          >
+            {isDeleting ? "Excluindo..." : "Excluir"}
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
+  );
+}
