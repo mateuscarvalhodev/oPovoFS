@@ -1,5 +1,5 @@
-import { useCallback, useEffect, useState } from "react";
-import { useNavigate, useParams } from "react-router";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { Navigate, useNavigate, useParams } from "react-router";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -25,10 +25,8 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 
-import * as PostsService from "@/features/posts/services/posts-service";
 import { getApiErrorMessage } from "@/shared/api/api-error";
-
-import { notifyPostsChanged } from "../hooks/posts-events";
+import { usePostDetails, useUpdatePost } from "../hooks/posts-queries";
 
 const editPostSchema = z.object({
   title: z
@@ -46,10 +44,19 @@ type EditPostValues = z.infer<typeof editPostSchema>;
 export function EditPostSheet() {
   const navigate = useNavigate();
   const { id } = useParams();
-  const postId = Number(id);
+
+  const postId = useMemo(() => Number(id ?? NaN), [id]);
+  const isValidId = Number.isFinite(postId) && postId > 0;
 
   const [open, setOpen] = useState(true);
-  const [loadingPost, setLoadingPost] = useState(true);
+
+  const closeSheet = useCallback(() => {
+    setOpen(false);
+    navigate(`/posts/${postId}`, { replace: true });
+  }, [navigate, postId]);
+
+  const postQuery = usePostDetails(postId);
+  const updateMutation = useUpdatePost(postId);
 
   const form = useForm<EditPostValues>({
     resolver: zodResolver(editPostSchema),
@@ -57,48 +64,33 @@ export function EditPostSheet() {
     mode: "onSubmit",
   });
 
-  const closeSheet = useCallback(() => {
-    setOpen(false);
-    navigate(`/posts/${postId}`, { replace: true });
-  }, [navigate, postId]);
+  useEffect(() => {
+    if (!isValidId) toast.error("ID do post inválido.");
+  }, [isValidId]);
 
   useEffect(() => {
-    let alive = true;
+    if (!postQuery.isError) return;
+    toast.error(getApiErrorMessage(postQuery.error));
+  }, [postQuery.isError, postQuery.error]);
 
-    async function load() {
-      try {
-        setLoadingPost(true);
-
-        if (!Number.isFinite(postId)) {
-          throw new Error("ID do post inválido.");
-        }
-
-        const post = await PostsService.getPostById(postId);
-        if (!alive) return;
-
-        form.reset({ title: post.title, content: post.content });
-      } catch (err) {
-        if (!alive) return;
-        toast.error(getApiErrorMessage(err));
-        closeSheet();
-      } finally {
-        if (alive) setLoadingPost(false);
-      }
-    }
-
-    load();
-    return () => {
-      alive = false;
-    };
-  }, [postId, form, closeSheet]);
+  useEffect(() => {
+    if (!postQuery.data) return;
+    form.reset({
+      title: postQuery.data.title,
+      content: postQuery.data.content,
+    });
+  }, [postQuery.data, form]);
 
   async function onSubmit(values: EditPostValues) {
     form.clearErrors("root");
 
     try {
-      await PostsService.updatePost(postId, values);
+      await updateMutation.mutateAsync({
+        title: values.title,
+        content: values.content,
+      });
+
       toast.success("Post atualizado com sucesso!");
-      notifyPostsChanged();
       closeSheet();
     } catch (err) {
       const message = getApiErrorMessage(err);
@@ -107,7 +99,14 @@ export function EditPostSheet() {
     }
   }
 
-  const isSubmitting = form.formState.isSubmitting;
+  if (!isValidId) return <Navigate to="/posts" replace />;
+
+  if (postQuery.isError) {
+    return <Navigate to={`/posts/${postId}`} replace />;
+  }
+
+  const loadingPost = postQuery.isLoading;
+  const isSubmitting = updateMutation.isPending;
 
   return (
     <Sheet

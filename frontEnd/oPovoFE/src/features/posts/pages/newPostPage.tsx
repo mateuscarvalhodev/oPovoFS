@@ -26,8 +26,7 @@ import {
 } from "@/components/ui/form";
 
 import { getApiErrorMessage } from "@/shared/api/api-error";
-import * as PostsService from "@/features/posts/services/posts-service";
-import { notifyPostsChanged } from "../hooks/posts-events";
+import { useCreatePost } from "../hooks/posts-queries";
 
 const createPostSchema = z.object({
   title: z
@@ -46,13 +45,13 @@ export function NewPostSheet() {
   const navigate = useNavigate();
   const [open, setOpen] = useState(true);
 
+  const createPost = useCreatePost();
+
   const form = useForm<CreatePostValues>({
     resolver: zodResolver(createPostSchema),
     defaultValues: { title: "", content: "" },
     mode: "onSubmit",
   });
-
-  const isSubmitting = form.formState.isSubmitting;
 
   function closeSheet() {
     setOpen(false);
@@ -63,17 +62,17 @@ export function NewPostSheet() {
     form.clearErrors("root");
 
     try {
-      await PostsService.createPost(values);
-      notifyPostsChanged();
+      await createPost.mutateAsync(values);
       toast.success("Post criado com sucesso!");
       closeSheet();
     } catch (err) {
       const message = getApiErrorMessage(err);
-
       toast.error(message);
       form.setError("root", { type: "server", message });
     }
   }
+
+  const isSubmitting = form.formState.isSubmitting || createPost.isPending;
 
   return (
     <Sheet

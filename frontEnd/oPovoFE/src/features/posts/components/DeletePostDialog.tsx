@@ -1,5 +1,5 @@
-import { useState } from "react";
 import { toast } from "sonner";
+import { Trash2 } from "lucide-react";
 
 import {
   AlertDialog,
@@ -15,10 +15,7 @@ import {
 
 import { Button } from "@/components/ui/button";
 import { getApiErrorMessage } from "@/shared/api/api-error";
-import * as PostsService from "@/features/posts/services/posts-service";
-
-import { Trash2 } from "lucide-react";
-import { notifyPostsChanged } from "../hooks/posts-events";
+import { useDeletePost } from "../hooks/posts-queries";
 
 type DeletePostDialogProps = {
   postId: number;
@@ -31,20 +28,18 @@ export function DeletePostDialog({
   onDeleted,
   disabled,
 }: DeletePostDialogProps) {
-  const [isDeleting, setIsDeleting] = useState(false);
+  const deletePost = useDeletePost();
+
+  const isDeleting = deletePost.isPending;
 
   async function handleConfirm() {
     try {
-      setIsDeleting(true);
-      await PostsService.deletePost(postId);
+      await deletePost.mutateAsync(postId);
 
       toast.success("Post excluído com sucesso!");
-      notifyPostsChanged();
       onDeleted?.();
     } catch (err) {
       toast.error(getApiErrorMessage(err));
-    } finally {
-      setIsDeleting(false);
     }
   }
 
@@ -60,7 +55,6 @@ export function DeletePostDialog({
           className="text-destructive hover:text-destructive"
         >
           <span className="sr-only">Excluir</span>
-
           <Trash2 className="h-4 w-4" />
         </Button>
       </AlertDialogTrigger>

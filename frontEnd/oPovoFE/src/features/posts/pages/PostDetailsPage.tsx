@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Link, useNavigate, useParams } from "react-router";
+import { Link, Outlet, useNavigate, useParams } from "react-router";
 import { toast } from "sonner";
 import { Pencil } from "lucide-react";
 
@@ -107,6 +107,7 @@ export function PostDetailsPage() {
           </CardContent>
         </Card>
       )}
+      <Outlet />
     </div>
   );
 }

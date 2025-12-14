@@ -1,74 +1,32 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
-import { toast } from "sonner";
-
-import type { PostListItem } from "../types";
-import * as PostsService from "@/features/posts/services/posts-service";
-import { getApiErrorMessage } from "@/shared/api/api-error";
+import { useMemo, useState } from "react";
 import { getPaginationTokens } from "@/shared/lib/pagination";
-import { onPostsChanged } from "./posts-events";
+import { usePostsList } from "./posts-queries";
 
 type UsePostsListParams = {
   query: string;
   perPage: number;
 };
 
-export function usePostsList({ query, perPage }: UsePostsListParams) {
-  const [page, setPage] = useState(1);
+export function usePostsListHook({ query, perPage }: UsePostsListParams) {
+  const [pageByQuery, setPageByQuery] = useState<Record<string, number>>({});
 
-  const [posts, setPosts] = useState<PostListItem[]>([]);
-  const [loading, setLoading] = useState(true);
+  const key = query ?? "";
+  const page = pageByQuery[key] ?? 1;
 
-  const [lastPage, setLastPage] = useState(1);
-  const [hasPrev, setHasPrev] = useState(false);
-  const [hasNext, setHasNext] = useState(false);
-
-  const [refreshKey, setRefreshKey] = useState(0);
-
-  const reload = useCallback(() => setRefreshKey((k) => k + 1), []);
-
-  useEffect(() => {
-    setPage(1);
-  }, [query]);
-
-  useEffect(() => {
-    return onPostsChanged(() => {
-      setPage(1);
-      reload();
+  const setPage = (next: number | ((p: number) => number)) => {
+    setPageByQuery((prev) => {
+      const current = prev[key] ?? 1;
+      const value = typeof next === "function" ? next(current) : next;
+      return { ...prev, [key]: value };
     });
-  }, [reload]);
+  };
 
-  useEffect(() => {
-    let alive = true;
+  const postsQuery = usePostsList({ page, perPage, query });
 
-    async function load() {
-      try {
-        setLoading(true);
-
-        const res = await PostsService.listPosts({
-          page,
-          perPage,
-          query,
-        });
-
-        if (!alive) return;
-
-        setPosts(res.posts);
-        setLastPage(res.meta.last_page ?? 1);
-        setHasPrev(Boolean(res.links.prev));
-        setHasNext(Boolean(res.links.next));
-      } catch (err) {
-        if (!alive) return;
-        toast.error(getApiErrorMessage(err));
-      } finally {
-        if (alive) setLoading(false);
-      }
-    }
-
-    load();
-    return () => {
-      alive = false;
-    };
-  }, [page, perPage, query, refreshKey]);
+  const posts = postsQuery.data?.posts ?? [];
+  const lastPage = postsQuery.data?.meta.last_page ?? 1;
+  const hasPrev = Boolean(postsQuery.data?.links.prev);
+  const hasNext = Boolean(postsQuery.data?.links.next);
 
   const pages = useMemo(
     () => getPaginationTokens(page, lastPage),
@@ -77,13 +35,15 @@ export function usePostsList({ query, perPage }: UsePostsListParams) {
 
   return {
     posts,
-    loading,
+    loading: postsQuery.isLoading,
     page,
     setPage,
     lastPage,
     hasPrev,
     hasNext,
     pages,
-    reload,
+    reload: () => postsQuery.refetch(),
+    isError: postsQuery.isError,
+    error: postsQuery.error,
   };
 }

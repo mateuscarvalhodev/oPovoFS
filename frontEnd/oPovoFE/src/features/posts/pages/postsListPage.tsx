@@ -1,12 +1,14 @@
-import { useState } from "react";
-import { Link } from "react-router";
+import { useMemo, useState } from "react";
+import { Link, Outlet } from "react-router";
+import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { PostsList } from "../components/PostsList";
 
 import { useDebounce } from "@/shared/hooks/use-debounce";
-import { usePostsList } from "@/features/posts/hooks/use-posts-list";
+import { getApiErrorMessage } from "@/shared/api/api-error";
+import { getPaginationTokens } from "@/shared/lib/pagination";
 
 import {
   Pagination,
@@ -17,13 +19,34 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "@/components/ui/pagination";
+import { usePostsList } from "../hooks/posts-queries";
 
 export function PostsListPage() {
   const [query, setQuery] = useState("");
   const debouncedQuery = useDebounce(query, 350);
 
-  const { posts, loading, page, setPage, lastPage, hasPrev, hasNext, pages } =
-    usePostsList({ query: debouncedQuery, perPage: 10 });
+  const [page, setPage] = useState(1);
+  const perPage = 10;
+
+  const postsQuery = usePostsList({
+    page,
+    perPage,
+    query: debouncedQuery,
+  });
+
+  const posts = postsQuery.data?.posts ?? [];
+  const lastPage = postsQuery.data?.meta.last_page ?? 1;
+  const hasPrev = Boolean(postsQuery.data?.links.prev);
+  const hasNext = Boolean(postsQuery.data?.links.next);
+
+  const pages = useMemo(
+    () => getPaginationTokens(page, lastPage),
+    [page, lastPage]
+  );
+
+  if (postsQuery.isError) {
+    toast.error(getApiErrorMessage(postsQuery.error));
+  }
 
   return (
     <div className="mx-auto w-full max-w-3xl p-6">
@@ -43,13 +66,16 @@ export function PostsListPage() {
 
         <Input
           value={query}
-          onChange={(e) => setQuery(e.target.value)}
+          onChange={(e) => {
+            setQuery(e.target.value);
+            setPage(1);
+          }}
           placeholder="Buscar por título, autor ou conteúdo..."
           aria-label="Buscar posts"
         />
       </header>
 
-      {loading ? (
+      {postsQuery.isLoading ? (
         <p className="text-sm text-muted-foreground">Carregando posts...</p>
       ) : posts.length === 0 ? (
         <p className="text-sm text-muted-foreground">Nenhum post encontrado.</p>
@@ -109,8 +135,7 @@ export function PostsListPage() {
           </Pagination>
         </div>
       ) : null}
-
-      {/* <Outlet /> */}
+      <Outlet />
     </div>
   );
 }
