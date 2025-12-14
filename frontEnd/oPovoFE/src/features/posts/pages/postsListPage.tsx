@@ -19,7 +19,12 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "@/components/ui/pagination";
+
 import { usePostsList } from "../hooks/posts-queries";
+import {
+  LoadingOverlay,
+  PageLoading,
+} from "@/features/auth/components/AppLoading";
 
 export function PostsListPage() {
   const [query, setQuery] = useState("");
@@ -48,8 +53,19 @@ export function PostsListPage() {
     toast.error(getApiErrorMessage(postsQuery.error));
   }
 
+  const isInitialLoading = postsQuery.isLoading;
+  const isRefetching = postsQuery.isFetching && !postsQuery.isLoading;
+
+  if (isInitialLoading) {
+    return (
+      <div className="mx-auto w-full max-w-6xl p-6">
+        <PageLoading label="Carregando posts..." />
+      </div>
+    );
+  }
+
   return (
-    <div className="mx-auto w-full max-w-6xl px-4 py-6 sm:px-6">
+    <div className="mx-auto w-full max-w-6xl p-6">
       <header className="mb-6 space-y-3">
         <div className="flex items-start justify-between gap-3">
           <div>
@@ -75,13 +91,17 @@ export function PostsListPage() {
         />
       </header>
 
-      {postsQuery.isLoading ? (
-        <p className="text-sm text-muted-foreground">Carregando posts...</p>
-      ) : posts.length === 0 ? (
-        <p className="text-sm text-muted-foreground">Nenhum post encontrado.</p>
-      ) : (
-        <PostsList posts={posts} />
-      )}
+      <div className="relative">
+        {isRefetching ? <LoadingOverlay label="Atualizando..." /> : null}
+
+        {posts.length === 0 ? (
+          <p className="text-sm text-muted-foreground">
+            Nenhum post encontrado.
+          </p>
+        ) : (
+          <PostsList posts={posts} />
+        )}
+      </div>
 
       {lastPage > 1 ? (
         <div className="mt-6">
@@ -92,10 +112,15 @@ export function PostsListPage() {
                   href="#"
                   onClick={(e) => {
                     e.preventDefault();
-                    if (hasPrev) setPage((p) => Math.max(1, p - 1));
+                    if (hasPrev && !isRefetching)
+                      setPage((p) => Math.max(1, p - 1));
                   }}
-                  aria-disabled={!hasPrev}
-                  className={!hasPrev ? "pointer-events-none opacity-50" : ""}
+                  aria-disabled={!hasPrev || isRefetching}
+                  className={
+                    !hasPrev || isRefetching
+                      ? "pointer-events-none opacity-50"
+                      : ""
+                  }
                 />
               </PaginationItem>
 
@@ -111,8 +136,11 @@ export function PostsListPage() {
                       isActive={p === page}
                       onClick={(e) => {
                         e.preventDefault();
-                        setPage(p);
+                        if (!isRefetching) setPage(p);
                       }}
+                      className={
+                        isRefetching ? "pointer-events-none opacity-50" : ""
+                      }
                     >
                       {p}
                     </PaginationLink>
@@ -125,16 +153,22 @@ export function PostsListPage() {
                   href="#"
                   onClick={(e) => {
                     e.preventDefault();
-                    if (hasNext) setPage((p) => Math.min(lastPage, p + 1));
+                    if (hasNext && !isRefetching)
+                      setPage((p) => Math.min(lastPage, p + 1));
                   }}
-                  aria-disabled={!hasNext}
-                  className={!hasNext ? "pointer-events-none opacity-50" : ""}
+                  aria-disabled={!hasNext || isRefetching}
+                  className={
+                    !hasNext || isRefetching
+                      ? "pointer-events-none opacity-50"
+                      : ""
+                  }
                 />
               </PaginationItem>
             </PaginationContent>
           </Pagination>
         </div>
       ) : null}
+
       <Outlet />
     </div>
   );

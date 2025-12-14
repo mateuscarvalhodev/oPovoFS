@@ -19,6 +19,10 @@ import {
 
 import { useMyPostsList } from "@/features/posts/hooks/posts-queries";
 import { MyPostCard } from "@/features/posts/components/MyPostCard";
+import {
+  LoadingOverlay,
+  PageLoading,
+} from "@/features/auth/components/AppLoading";
 
 export function MyPostsPage() {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -50,6 +54,9 @@ export function MyPostsPage() {
     [page, lastPage]
   );
 
+  const isInitialLoading = myPostsQuery.isLoading;
+  const isRefetching = myPostsQuery.isFetching && !myPostsQuery.isLoading;
+
   function setPage(next: number) {
     const q = debouncedQuery.trim();
     setSearchParams((prev) => {
@@ -71,6 +78,14 @@ export function MyPostsPage() {
       else sp.delete("q");
       return sp;
     });
+  }
+
+  if (isInitialLoading) {
+    return (
+      <div className="mx-auto w-full max-w-6xl px-4 py-6 sm:px-6">
+        <PageLoading label="Carregando seus posts..." />
+      </div>
+    );
   }
 
   return (
@@ -97,25 +112,27 @@ export function MyPostsPage() {
         />
       </header>
 
-      {myPostsQuery.isLoading ? (
-        <p className="text-sm text-muted-foreground">Carregando...</p>
-      ) : posts.length === 0 ? (
-        <p className="text-sm text-muted-foreground">
-          Você ainda não tem posts.
-        </p>
-      ) : (
-        <div className="grid gap-4">
-          {posts.map((post) => (
-            <MyPostCard
-              key={String(post.id)}
-              post={post}
-              onDeleted={() => {
-                myPostsQuery.refetch();
-              }}
-            />
-          ))}
-        </div>
-      )}
+      <div className="relative">
+        {isRefetching ? <LoadingOverlay label="Atualizando..." /> : null}
+
+        {posts.length === 0 ? (
+          <p className="text-sm text-muted-foreground">
+            Você ainda não tem posts.
+          </p>
+        ) : (
+          <div className="grid gap-4">
+            {posts.map((post) => (
+              <MyPostCard
+                key={String(post.id)}
+                post={post}
+                onDeleted={() => {
+                  myPostsQuery.refetch();
+                }}
+              />
+            ))}
+          </div>
+        )}
+      </div>
 
       {lastPage > 1 ? (
         <div className="mt-6">
@@ -126,10 +143,14 @@ export function MyPostsPage() {
                   href="#"
                   onClick={(e) => {
                     e.preventDefault();
-                    if (hasPrev) setPage(page - 1);
+                    if (hasPrev && !isRefetching) setPage(page - 1);
                   }}
-                  aria-disabled={!hasPrev}
-                  className={!hasPrev ? "pointer-events-none opacity-50" : ""}
+                  aria-disabled={!hasPrev || isRefetching}
+                  className={
+                    !hasPrev || isRefetching
+                      ? "pointer-events-none opacity-50"
+                      : ""
+                  }
                 />
               </PaginationItem>
 
@@ -145,8 +166,11 @@ export function MyPostsPage() {
                       isActive={p === page}
                       onClick={(e) => {
                         e.preventDefault();
-                        setPage(p);
+                        if (!isRefetching) setPage(p);
                       }}
+                      className={
+                        isRefetching ? "pointer-events-none opacity-50" : ""
+                      }
                     >
                       {p}
                     </PaginationLink>
@@ -159,10 +183,14 @@ export function MyPostsPage() {
                   href="#"
                   onClick={(e) => {
                     e.preventDefault();
-                    if (hasNext) setPage(page + 1);
+                    if (hasNext && !isRefetching) setPage(page + 1);
                   }}
-                  aria-disabled={!hasNext}
-                  className={!hasNext ? "pointer-events-none opacity-50" : ""}
+                  aria-disabled={!hasNext || isRefetching}
+                  className={
+                    !hasNext || isRefetching
+                      ? "pointer-events-none opacity-50"
+                      : ""
+                  }
                 />
               </PaginationItem>
             </PaginationContent>
