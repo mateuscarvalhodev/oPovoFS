@@ -67,15 +67,7 @@ export function WelcomePage() {
           </Card>
         </section>
 
-        <footer className="mt-10 text-sm text-muted-foreground">
-          <p>
-            Dica: comece pela{" "}
-            <Link to="/posts" className="font-medium text-foreground underline">
-              listagem de posts
-            </Link>{" "}
-            para ver o componente de card em ação.
-          </p>
-        </footer>
+        <footer className="mt-10 text-sm text-muted-foreground"></footer>
       </div>
     </div>
   );

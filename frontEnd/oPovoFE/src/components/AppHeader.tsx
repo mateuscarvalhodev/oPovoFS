@@ -61,7 +61,7 @@ export function AppHeader() {
                   className="rounded-full"
                   aria-label="Menu do usuário"
                 >
-                  <Avatar className="h-9 w-9">
+                  <Avatar className="h-9 w-9 border-4 border-blue-700">
                     <AvatarFallback>
                       {session?.user?.name ? (
                         initials(session.user.name)

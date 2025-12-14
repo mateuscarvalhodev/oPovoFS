@@ -86,7 +86,7 @@ export function PostsListPage() {
             setQuery(e.target.value);
             setPage(1);
           }}
-          placeholder="Buscar por título, autor ou conteúdo..."
+          placeholder="Buscar por título..."
           aria-label="Buscar posts"
         />
       </header>
