@@ -1,20 +1,32 @@
 import * as postsApi from "../api/posts-api";
 import type { PostListItem } from "../types";
+import type { PostsListResponse } from "../api/posts-api";
+import { parsePtBrDateTimeToIso } from "@/shared/lib/date";
 
-function brDateTimeToIso(value: string): string {
-  const [datePart, timePart] = value.split(" ");
-  const [dd, mm, yyyy] = datePart.split("/").map(Number);
-  const [hh, min] = (timePart ?? "00:00").split(":").map(Number);
+export type PostDetailsView = {
+  id: number;
+  title: string;
+  content: string;
+  authorName: string;
+  createdAt: string;
+  updatedAt: string;
+};
 
-  const d = new Date(yyyy, (mm ?? 1) - 1, dd ?? 1, hh ?? 0, min ?? 0);
-  return d.toISOString();
-}
-
-export async function listPosts(input: {
+export type ListPostsInput = {
   page: number;
   perPage: number;
   query?: string;
-}) {
+};
+
+export type ListPostsResult = {
+  posts: PostListItem[];
+  meta: PostsListResponse["meta"];
+  links: PostsListResponse["links"];
+};
+
+export async function listPosts(
+  input: ListPostsInput
+): Promise<ListPostsResult> {
   const res = await postsApi.getPosts({
     page: input.page,
     per_page: input.perPage,
@@ -26,10 +38,23 @@ export async function listPosts(input: {
     title: p.titulo,
     content: "Clique para ver o post completo.",
     authorName: p.autor,
-    createdAt: brDateTimeToIso(p.data),
+    createdAt: parsePtBrDateTimeToIso(p.data),
   }));
 
   return { posts, meta: res.meta, links: res.links };
+}
+
+export async function getPostById(id: number): Promise<PostDetailsView> {
+  const post = await postsApi.getPostById(id);
+
+  return {
+    id: post.id,
+    title: post.titulo,
+    content: post.conteudo,
+    authorName: post.autor.name,
+    createdAt: post.created_at,
+    updatedAt: post.updated_at,
+  };
 }
 
 export async function createPost(input: { title: string; content: string }) {

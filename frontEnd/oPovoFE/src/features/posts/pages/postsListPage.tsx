@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link, Outlet } from "react-router";
+import { Link } from "react-router";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -110,7 +110,7 @@ export function PostsListPage() {
         </div>
       ) : null}
 
-      <Outlet />
+      {/* <Outlet /> */}
     </div>
   );
 }
