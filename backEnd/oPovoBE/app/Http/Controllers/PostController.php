@@ -9,11 +9,11 @@ use Illuminate\Support\Facades\Auth;
 
 class PostController extends Controller
 {
-    public function list()
+    public function list(Request $request)
     {
         $posts = Post::with('autor:id,name')
             ->latest()
-            ->paginate(12);
+            ->paginate($request->input("per_page", 12));
 
         return PostListResource::collection($posts);
     }
@@ -78,11 +78,11 @@ class PostController extends Controller
         ]);
     }
 
-    public function meusPosts()
+    public function meusPosts(Request $request)
     {
         $posts = Post::where('autor_id', Auth::id())
             ->latest()
-            ->paginate(12);
+            ->paginate($request->input("per_page", 12));
 
         return response()->json($posts);
     }
